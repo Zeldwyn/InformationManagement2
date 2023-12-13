@@ -1,0 +1,36 @@
+<!-- templates/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+</head>
+<body>
+    <h2>Welcome to the Home Page</h2>
+    
+    <!-- Form for posting comments -->
+    <form id="postForm" method="POST" action="/post_content">
+        <label for="comment">Post a Comment:</label>
+        <input type="text" id="comment" name="message" required>
+        <button type="submit">Post</button>
+    </form>
+
+    
+
+    <a href="/"><button>Logout</button></a>
+    
+    
+    <div id="postsContainer">
+        {% for post in posts %}
+            <p>{{ post[2] }} - {{ post[3]}}</p> 
+        {% endfor %}
+    </div>
+    
+    {% if show_alert %}
+        <script>
+            alert('{{ alert_message }}');
+        </script>
+    {% endif %}
+</body>
+</html>

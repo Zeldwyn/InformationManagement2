@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <style>
+        #loginForm {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h2>Welcome to the System</h2>
+    
+    <!-- Login button opens the login form -->
+    <button onclick="openLoginForm()">Login</button>
+
+    <!-- Register button -->
+    <a href="/register"><button>Register</button></a>
+
+    <!-- Login form (initially hidden) -->
+    <div id="loginForm">
+        <h2>Login</h2>
+        <!-- Add your login form fields here -->
+        <form action="/login" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br>
+
+            <button type="button" onclick="closeLoginForm()">Close</button>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    {% if show_alert %}
+        <script>
+            alert('{{ alert_message }}');
+        </script>
+    {% endif %}
+
+    <script>
+        function openLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+        }
+        function closeLoginForm() {
+            document.getElementById('loginForm').style.display = 'none';
+        }
+        
+    </script>
+</body>
+</html>
