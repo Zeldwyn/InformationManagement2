@@ -2,7 +2,7 @@ import datetime
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_mysqldb import MySQL
 from database import init_db, execute
-from flask import current_app
+from functions import register_user, get_user, display_posts
 
 
 
@@ -19,7 +19,6 @@ mysql = MySQL(app)
 init_db(app)
 
 def create_tables():
-    # Your SQL script for creating tables
     sql_script = """
     -- Create the User table
     CREATE TABLE IF NOT EXISTS User (
@@ -37,22 +36,21 @@ def create_tables():
         FOREIGN KEY (user_id) REFERENCES User(user_id)
     );
 
-    -- Create the ReplyContent table
     CREATE TABLE IF NOT EXISTS ReplyContent (
         reply_id INT AUTO_INCREMENT PRIMARY KEY,
         content_id INT,
+        user_id INT,
         message VARCHAR(255) NOT NULL,
         date DATE,
-        FOREIGN KEY (content_id) REFERENCES PostContent(content_id)
+        FOREIGN KEY (content_id) REFERENCES PostContent(content_id),
         FOREIGN KEY (user_id) REFERENCES User(user_id)
     );
     """
-    create_procedures_views_joins_triggers()
     with app.app_context():
         execute(sql_script)
         
 
-def create_procedures_views_joins_triggers():
+def procedures():
     script = """
     DROP PROCEDURE IF EXISTS InsertUser;
 
@@ -78,11 +76,13 @@ def create_procedures_views_joins_triggers():
         INSERT INTO ReplyContent (content_id, message, date) VALUES (p_content_id, p_message, p_date);
     END;
 
-    DROP PROCEDURE IF EXISTS GetAllPosts;
+   DROP PROCEDURE IF EXISTS GetAllPosts;
 
     CREATE PROCEDURE GetAllPosts()
     BEGIN
-        SELECT * FROM PostContent;
+        SELECT PC.content_id, PC.message, PC.date, U.username
+        FROM PostContent PC
+        JOIN User U ON PC.user_id = U.user_id;
     END;
 
     DROP PROCEDURE IF EXISTS GetUserByUsername;
@@ -90,7 +90,12 @@ def create_procedures_views_joins_triggers():
     BEGIN
         SELECT * FROM User WHERE username = p_username;
     END;
+    """
+    with app.app_context():
+        execute(script)
 
+def view():
+    script = """
     DROP VIEW IF EXISTS UserPostReplyView;
     CREATE VIEW UserPostReplyView AS
     SELECT
@@ -111,32 +116,6 @@ def create_procedures_views_joins_triggers():
     """
     with app.app_context():
         execute(script)
-
-
-def register_user(username, password):
-    try:
-        with app.app_context():
-            execute("CALL InsertUser(%s, %s)", (username, password))
-        return True, None  # Registration successful
-    except Exception as e:
-        return False, str(e)
-    
-def get_user(username):
-    try:
-        with app.app_context():
-            user = execute("CALL GetUserByUsername(%s)", (username,), fetch=True)
-        return user[0] if user else None
-    except Exception as e:
-        print("Error fetching user:", str(e))
-        return None
-
-def display_posts():
-    try:
-        with app.app_context():
-            posts = execute("CALL GetAllPosts()", fetch=True)
-        return posts
-    except Exception as e:
-        return [{'message': 'Error fetching posts', 'date': str(e)}]
 
 @app.route('/')
 def index():
@@ -218,4 +197,7 @@ def post_content():
         
 if __name__ == '__main__':
     create_tables()
+    procedures()
+    view()
+    
     app.run(debug=True)

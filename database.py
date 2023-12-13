@@ -32,12 +32,12 @@ def execute(query, params=None, fetch=False):
             results = cursor.fetchall()
             return results
         else:
+            while cursor.nextset():  # Fetch remaining results
+                pass
             db.commit()
-
     except Exception as e:
         db.rollback()
         raise e
     finally:
-        if 'cursor' in locals() and cursor:
-            cursor.close()
+        cursor.close()
 
