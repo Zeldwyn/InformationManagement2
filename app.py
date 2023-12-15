@@ -142,7 +142,6 @@ def home():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    show_alert = False
     alert_message = ""
 
     if request.method == 'POST':

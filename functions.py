@@ -22,6 +22,10 @@ def display_posts():
     try:
         with current_app.app_context():
             posts = execute("CALL GetAllPosts()", fetch=True)
+            for post in posts:
+                content_id = post[0]
+                replies = execute("CALL GetRepliesByContentId(%s)", (content_id,), fetch=True)
+                post.append(replies)
             return posts 
     except Exception as e:
         return [{'message': 'Error fetching posts', 'date': str(e)}]
