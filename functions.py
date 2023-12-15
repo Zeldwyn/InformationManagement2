@@ -22,6 +22,14 @@ def display_posts():
     try:
         with current_app.app_context():
             posts = execute("CALL GetAllPosts()", fetch=True)
-        return posts
+            return posts 
+    except Exception as e:
+        return [{'message': 'Error fetching posts', 'date': str(e)}]
+    
+def display_reply(content_id):
+    try:
+        with current_app.app_context():
+            reply = execute("CALL GetRepliesByContentId(%s)",(content_id,), fetch=True)
+            return reply
     except Exception as e:
         return [{'message': 'Error fetching posts', 'date': str(e)}]

@@ -5,7 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome</title>
     <style>
-        #loginForm {
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('static/bg.png');
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-size: cover;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            text-align: center;
+        }
+
+        /* Style the buttons */
+        button, a button {
+            background-color: #d2b48c;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+            margin: 10px;
+            font-size: 16px;
+        }
+
+        /* Hover effect */
+        button:hover, a button:hover {
+            background-color: #987554;
+        }
+
+        /* Style the login and register forms (initially hidden) */
+        .form {
             display: none;
             position: fixed;
             top: 50%;
@@ -15,6 +52,26 @@
             border: 1px solid #ccc;
             background-color: #fff;
             z-index: 1000;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Style the buttons inside the forms */
+        .form button {
+            background-color: #987554;
         }
     </style>
 </head>
@@ -22,13 +79,13 @@
     <h2>Welcome to the System</h2>
     
     <!-- Login button opens the login form -->
-    <button onclick="openLoginForm()">Login</button>
+    <button onclick="openForm('loginForm')">Login</button>
 
     <!-- Register button -->
-    <a href="/register"><button>Register</button></a>
+    <button onclick="openForm('registerForm')">Register</button>
 
     <!-- Login form (initially hidden) -->
-    <div id="loginForm">
+    <div id="loginForm" class="form">
         <h2>Login</h2>
         <!-- Add your login form fields here -->
         <form action="/login" method="post">
@@ -38,25 +95,42 @@
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required><br>
 
-            <button type="button" onclick="closeLoginForm()">Close</button>
+            <button type="button" onclick="closeForm('loginForm')">Close</button>
             <button type="submit">Login</button>
         </form>
     </div>
 
-    {% if show_alert %}
-        <script>
-            alert('{{ alert_message }}');
-        </script>
-    {% endif %}
+    <!-- Register form (initially hidden) -->
+    <div id="registerForm" class="form">
+        <h2>Register</h2>
+        <!-- Add your register form fields here -->
+        <form action="/register" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br>
+
+            <button type="button" onclick="closeForm('registerForm')">Close</button>
+            <button type="submit">Register</button>
+        </form>
+    </div>
 
     <script>
-        function openLoginForm() {
-            document.getElementById('loginForm').style.display = 'block';
+        // Function to open the login or register form
+        function openForm(formId) {
+            document.getElementById(formId).style.display = 'block';
         }
-        function closeLoginForm() {
-            document.getElementById('loginForm').style.display = 'none';
+
+        // Function to close the login or register form
+        function closeForm(formId) {
+            document.getElementById(formId).style.display = 'none';
         }
-        
     </script>
+    {% if show_alert %}
+    <script>
+        alert('{{ alert_message }}');
+    </script>
+    {% endif %}
 </body>
 </html>

@@ -2,7 +2,7 @@ import datetime
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask_mysqldb import MySQL
 from database import init_db, execute
-from functions import register_user, get_user, display_posts
+from functions import register_user, get_user, display_posts, display_reply
 
 
 
@@ -71,18 +71,30 @@ def procedures():
 
     DROP PROCEDURE IF EXISTS InsertReply;
 
-    CREATE PROCEDURE InsertReply(IN p_content_id INT,IN p_message VARCHAR(255),IN p_date DATE)
+    CREATE PROCEDURE InsertReply(IN p_username VARCHAR(255), IN p_content_id INT,IN p_message VARCHAR(255),IN p_date DATE)
     BEGIN
-        INSERT INTO ReplyContent (content_id, message, date) VALUES (p_content_id, p_message, p_date);
+        DECLARE p_user_id INT;
+        SELECT user_id INTO p_user_id FROM User WHERE username = p_username;
+        INSERT INTO ReplyContent (content_id, user_id,message, date) VALUES (p_content_id, p_user_id, p_message, p_date);
     END;
 
-   DROP PROCEDURE IF EXISTS GetAllPosts;
+    DROP PROCEDURE IF EXISTS GetAllPosts;
 
     CREATE PROCEDURE GetAllPosts()
     BEGIN
         SELECT PC.content_id, PC.message, PC.date, U.username
         FROM PostContent PC
         JOIN User U ON PC.user_id = U.user_id;
+    END;
+
+    DROP PROCEDURE IF EXISTS GetRepliesByContentId;
+
+    CREATE PROCEDURE GetRepliesByContentId(IN p_content_id INT)
+    BEGIN
+        SELECT U.username, RC.message, RC.date
+        FROM ReplyContent RC 
+        JOIN User U ON RC.user_id = U.user_id
+        WHERE RC.content_id = p_content_id;   
     END;
 
     DROP PROCEDURE IF EXISTS GetUserByUsername;
@@ -123,7 +135,9 @@ def index():
 
 @app.route('/home')
 def home():
-    return render_template('home.html')
+    posts = session.get('posts', [])
+    reply = session.get('reply', [])
+    return render_template('home.html', posts = posts, reply=reply)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -164,7 +178,7 @@ def login():
                 session['username'] = username  
                 alert_message = "Login Successful!"
                 posts = display_posts()
-                return render_template('home.html', show_alert=True, alert_message=alert_message,posts=posts)
+                return render_template('home.html', show_alert=True, alert_message=alert_message, posts = posts)
             else:
                 alert_message = "Invalid Credentials!"
                 return render_template('index.html', show_alert=True, alert_message=alert_message)
@@ -189,12 +203,34 @@ def post_content():
             with app.app_context():
                 execute("CALL InsertPost(%s, %s, %s)", (username, message, date))
                 posts = display_posts()
-                return render_template('home.html', posts=posts)
+                return redirect(url_for('home',posts=posts))
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
         
     return render_template('home.html')
+
+@app.route('/reply/<int:content_id>', methods=['GET', 'POST'])
+def add_reply(content_id):
+    if 'username' not in session:
+        return render_template('index.html')  
+    if request.method == 'POST':
+        username = session['username']
+        message = request.form.get('message')
+        date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        try:
+            with app.app_context():
+                execute("CALL InsertReply(%s, %s, %s, %s)", (username,content_id, message, date))
+                posts = display_posts()
+                reply = display_reply(content_id)
+                session['posts'] = posts
+                session['reply'] = reply
+                return redirect(url_for('home'))
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': str(e)})
         
+    return render_template('home.html') 
+   
 if __name__ == '__main__':
     create_tables()
     procedures()

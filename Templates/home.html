@@ -1,37 +1,134 @@
-<!-- templates/home.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('static/bg.png');
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-size: cover;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            text-align: center;
+        }
+        button, a button {
+            background-color: #d2b48c;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+            margin: 10px;
+            font-size: 12px;
+        }
+        button:hover, a button:hover {
+            background-color: #987554;
+        }
+        .postForm {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            z-index: 1000;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .postForm button {
+            background-color: #987554;
+        }
+
+    </style>
 </head>
 <body>
+    <div>
+    <a href="/"><button>Logout</button></a>
     <h2>Welcome to the Home Page</h2>
     
     <!-- Form for posting comments -->
-    <form id="postForm" method="POST" action="/post_content">
-        <label for="comment">Post a Comment:</label>
-        <input type="text" id="comment" name="message" required>
-        <button type="submit">Post</button>
+    <form id="postForm" method="POST" action="/post_content" 
+        style="display: flex; align-items: center; justify-content: center;">
+        <label for="comment" style="margin-right: 10px;">Post a Comment:</label>
+        <input type="text" id="comment" name="message" style="width: 30%;" required>
+        <button type="submit" style="margin-left: 10px;">Post</button>
     </form>
 
     
-
-    <a href="/"><button>Logout</button></a>
-    
-    
-    <div id="postsContainer">
         {% for post in posts %}
-            <p>{{ post[3] }}</p>
-            <p>{{ post[1] }} - {{ post[2]}}</p> 
-        {% endfor %}
-    </div>
+        <div style="display: flex;  
+                    flex-direction: column; 
+                    align-items: center; 
+                    justify-content: center; 
+                    border: 2px solid black;
+                    margin-bottom: 10px;
+                    width: 60%;
+                    margin-left: 20%;
+                    ">
+            <div style="display: flex; ">
+                <h4>Post by: {{ post[3] }}</h4>
+                <p>{{ post[1] }} - {{ post[2]}}</p> 
+                <button onclick="openPostForm('{{post[0]}}')">Reply</button>
+                <div id="postForm_{{post[0]}}" class="postForm">
+                    <h2>Add A Reply</h2>
+                    <form action="/reply/{{post[0]}}" method="post">
+                        <input type="text" id="reply" name="message" required><br>
+                        <button type="button" onclick="closePostForm('{{post[0]}}')">Close</button>
+                        <button type="submit">Submit</button>
+                    </form>
+                </div>
+            </div>
+            <h4>Replies: </h4>
+            
+            {% for reply in reply %}
+            <!--diri ang border pa ra sa reply-->
+            <div style="display: flex; ">
+            
+                <p>{{ reply[0] }}</p>
+                <p>{{ reply[1] }} - {{ reply[2]}}</p>
+            </div>
+            {% endfor %}
+        </div> 
+        {% endfor %}  
     
     {% if show_alert %}
         <script>
             alert('{{ alert_message }}');
         </script>
     {% endif %}
+    <script>
+        function openPostForm(content_id) {
+            var formId = 'postForm_' + content_id;
+            document.getElementById(formId).style.display = 'block';
+        }
+        function closePostForm(content_id) {
+            var formId = 'postForm_' + content_id;
+            document.getElementById(formId).style.display = 'none';
+        }
+    </script>
+    </div>
 </body>
 </html>
