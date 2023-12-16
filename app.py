@@ -108,23 +108,45 @@ def procedures():
 
 def view():
     script = """
-    DROP VIEW IF EXISTS UserPostReplyView;
-    CREATE VIEW UserPostReplyView AS
+    DROP VIEW IF EXISTS UserPostView;
+    CREATE VIEW UserPostView AS
     SELECT
-        U.user_id AS user_id,
-        U.username AS username,
         PC.content_id AS post_id,
-        PC.message AS post_message,
-        PC.date AS post_date,
-        RC.reply_id AS reply_id,
-        RC.message AS reply_message,
-        RC.date AS reply_date
+        PC.message AS post,
+        PC.date AS date,
+        U.user_id AS user_id
     FROM
-        User U
+        PostContent PC
+    JOIN
+        User U ON PC.user_id = U.user_id;
+
+    DROP VIEW IF EXISTS UserReplyView;
+    CREATE VIEW UserReplyView AS
+    SELECT
+        PC.content_id AS post_id,
+        RC.message AS reply,
+        RC.date AS date,
+        RC.reply_id AS reply_id,
+        U.user_id AS user_id
+    FROM
+        PostContent PC
     LEFT JOIN
-        PostContent PC ON U.user_id = PC.user_id
+        ReplyContent RC ON PC.content_id = RC.content_id
     LEFT JOIN
-        ReplyContent RC ON PC.content_id = RC.content_id;
+        User U ON RC.user_id = U.user_id;
+    """
+    with app.app_context():
+        execute(script)
+
+def trigger():
+    script = """
+    DROP TRIGGER IF EXISTS deleteAllContent;
+    CREATE TRIGGER deleteAllContent
+    BEFORE DELETE ON PostContent
+    FOR EACH ROW
+    BEGIN
+        DELETE FROM ReplyContent WHERE content_id = OLD.content_id;
+    END;
     """
     with app.app_context():
         execute(script)
@@ -135,9 +157,30 @@ def index():
 
 @app.route('/home')
 def home():
-    posts = session.get('posts', [])
-    reply = session.get('reply', [])
-    return render_template('home.html', posts = posts, reply=reply)
+    username = session.get('username')
+    posts = display_posts()
+    reply = []
+    for post in posts:
+        replies = display_reply(post[0])
+        reply.append(replies)
+    
+    return render_template('home.html', posts = posts,reply = reply, username = username)
+
+@app.route('/display')
+def display():
+    user_id = session.get('user_id')
+    try:
+        user_posts = execute("SELECT * FROM userpostview WHERE user_id = %s", (user_id,), fetch=True)
+        user_replies = execute("SELECT * FROM userreplyview WHERE user_id = %s", (user_id,), fetch=True)
+        session['viewpost'] = user_posts
+        session['viewreply'] = user_replies
+        print(user_posts)
+        print(user_replies)
+        return render_template('display.html', user_posts=user_posts, user_replies=user_replies)
+    except Exception as e:
+        print(f"Error: {str(e)}")
+    
+    return render_template('display.html', user_posts = user_posts, user_replies = user_replies)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -172,12 +215,18 @@ def login():
         password = request.form['password']
 
         existing_user = get_user(username)
+        session['user_id'] = existing_user[0]
         if existing_user is not None:
             if password == existing_user[2]:
                 session['username'] = username  
                 alert_message = "Login Successful!"
                 posts = display_posts()
-                return render_template('home.html', show_alert=True, alert_message=alert_message, posts = posts)
+                reply = []
+                for post in posts:
+                    replies = display_reply(post[0])
+                    reply.append(replies)
+
+                return render_template('home.html', show_alert=True, alert_message=alert_message, posts=posts, reply=reply, username = username)
             else:
                 alert_message = "Invalid Credentials!"
                 return render_template('index.html', show_alert=True, alert_message=alert_message)
@@ -189,6 +238,7 @@ def login():
 
 @app.route('/post_content', methods=['POST'])
 def post_content():
+    print("Reached /post_content route")
     if request.method == 'POST':
         if 'username' not in session:
             alert_message = "User does not exist!"
@@ -202,7 +252,11 @@ def post_content():
             with app.app_context():
                 execute("CALL InsertPost(%s, %s, %s)", (username, message, date))
                 posts = display_posts()
-                return redirect(url_for('home',posts=posts))
+                reply = []
+                for post in posts:
+                    replies = display_reply(post[0])
+                    reply.append(replies)
+                return redirect(url_for('home', posts = posts, reply = reply, username = username))
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
         
@@ -215,24 +269,48 @@ def add_reply(content_id):
     if request.method == 'POST':
         username = session['username']
         message = request.form.get('message')
-        date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
+        date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')  
         try:
             with app.app_context():
                 execute("CALL InsertReply(%s, %s, %s, %s)", (username,content_id, message, date))
                 posts = display_posts()
-                reply = display_reply(content_id)
                 session['posts'] = posts
-                session['reply'] = reply
-                return redirect(url_for('home'))
+                reply = []
+                for post in posts:
+                    replies = display_reply(post[0])
+                    reply.append(replies)
+                return redirect(url_for('home', posts = posts, reply = reply, username = username))  
         except Exception as e:
             return jsonify({'status': 'error', 'message': str(e)})
         
-    return render_template('home.html') 
-   
+    return redirect(url_for('home'))
+
+@app.route('/delete_post/<int:content_id>', methods=['GET', 'POST'])
+def delete_post(content_id):
+    try:
+        with app.app_context():
+            execute("DELETE FROM PostContent WHERE content_id = %s", (content_id,))
+            return redirect(url_for('display'))
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/delete_reply/<int:reply_id>', methods=['GET', 'POST'])
+def delete_reply(reply_id):
+    print("Reply_ID", reply_id)
+    try:
+        with app.app_context():
+            execute("DELETE FROM ReplyContent WHERE reply_id = %s", (reply_id,))
+            return redirect(url_for('display'))
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+
+    
+
 if __name__ == '__main__':
     create_tables()
     procedures()
     view()
+    trigger()
     
     app.run(debug=True)

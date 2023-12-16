@@ -76,15 +76,14 @@
     </style>
 </head>
 <body>
-    <h2>Welcome to the System</h2>
+    <div style="display: flex; flex-direction: column;">
+    <h2>Freedom Wall</h2>
     
-    <!-- Login button opens the login form -->
-    <button onclick="openForm('loginForm')">Login</button>
-
-    <!-- Register button -->
-    <button onclick="openForm('registerForm')">Register</button>
-
-    <!-- Login form (initially hidden) -->
+        <div style="display: flex; flex-direction: row;">
+            <button onclick="openForm('loginForm')">Login</button>
+            <button onclick="openForm('registerForm')">Register</button>
+        </div>
+    </div>
     <div id="loginForm" class="form">
         <h2>Login</h2>
         <!-- Add your login form fields here -->
@@ -99,11 +98,8 @@
             <button type="submit">Login</button>
         </form>
     </div>
-
-    <!-- Register form (initially hidden) -->
     <div id="registerForm" class="form">
         <h2>Register</h2>
-        <!-- Add your register form fields here -->
         <form action="/register" method="post">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required><br>
@@ -117,12 +113,9 @@
     </div>
 
     <script>
-        // Function to open the login or register form
         function openForm(formId) {
             document.getElementById(formId).style.display = 'block';
         }
-
-        // Function to close the login or register form
         function closeForm(formId) {
             document.getElementById(formId).style.display = 'none';
         }

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POST AND REPLIES</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('static/bg.png');
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-size: cover;
+        }
+        button, a button {
+            background-color: #d2b48c;
+            color: black;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-block;
+            text-decoration: none;
+            margin: 10px;
+            font-size: 12px;
+        }
+        button:hover, a button:hover {
+            background-color: #987554;
+        }
+        .post-content {
+            display: flex;
+            direction: row;
+            align-items: center;    
+            justify-content: space-between;
+            width: 100%;  
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            text-align: center;
+        }
+        h3 {
+            text-align: center;
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <a href="/home"><button>Back</button></a>
+    <div style="display: flex; flex-direction: row; justify-content: space-evenly;">
+        <div> 
+            <h2>User Posts</h2>
+                {% if user_posts %}
+                    {% for post in user_posts %}
+                    <div class="post-content">
+                        <div style="flex-direction: row;"><h4>{{ post[1] }} </h4>
+                        <p style="font-size: 10px; margin-top: -20px;">{{ post[2] }}</p></div>
+                        <a href="/delete_post/{{post[0]}}"><button type="button">Delete</button></a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <h4 style="color: red;">No user posts available.</h4>
+                {% endif %}
+        </div>
+        <div>
+            <h2>User Replies</h2>
+                {% if user_replies %}
+                    {% for reply in user_replies %}
+                    <div class="post-content">
+                        <div style="flex-direction: row;"><h4>{{ reply[1] }}</h4>
+                        <p style="font-size: 10px; margin-top: -20px;">{{ reply[2] }}</p></div>
+                        <a href="/delete_reply/{{reply[3]}}"><button type="button">Delete</button></a>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <h4 style="color: red;">No user replies available.</h4>
+                {% endif %}
+        </div>
+    </div>
+</body>
+</html>

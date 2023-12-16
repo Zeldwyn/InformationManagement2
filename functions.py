@@ -17,23 +17,21 @@ def get_user(username):
     except Exception as e:
         print("Error fetching user:", str(e))
         return None
-
+    
 def display_posts():
     try:
         with current_app.app_context():
             posts = execute("CALL GetAllPosts()", fetch=True)
-            for post in posts:
-                content_id = post[0]
-                replies = execute("CALL GetRepliesByContentId(%s)", (content_id,), fetch=True)
-                post.append(replies)
-            return posts 
+        return posts
     except Exception as e:
+        print("Error fetching posts:", str(e))
         return [{'message': 'Error fetching posts', 'date': str(e)}]
     
 def display_reply(content_id):
     try:
         with current_app.app_context():
-            reply = execute("CALL GetRepliesByContentId(%s)",(content_id,), fetch=True)
+            reply = execute("CALL GetRepliesByContentId(%s)", (content_id,), fetch=True)
             return reply
     except Exception as e:
-        return [{'message': 'Error fetching posts', 'date': str(e)}]
+        print(f"Error fetching replies for post {content_id}: {str(e)}")
+        return [{'message': 'Error fetching replies', 'date': str(e)}]
