@@ -5,7 +5,7 @@ def register_user(username, password):
     try:
         with current_app.app_context():
             execute("CALL InsertUser(%s, %s)", (username, password))
-        return True, None  # Registration successful
+        return True, None  
     except Exception as e:
         return False, str(e)
     

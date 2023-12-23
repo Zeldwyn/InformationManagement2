@@ -107,9 +107,7 @@
     <div>
         <a href="/"><button>Logout</button></a>
         <a href="{{ url_for('display') }}"><button>View all posts/replies</button></a>
-        <h2>Welcome {{username}}</h2>
-        
-        <!-- Form for posting comments -->
+        <h2>Welcome {{username}}!</h2> 
         <form id="postForm" method="POST" action="/post_content" 
             style="display: flex; align-items: center; justify-content: center;">
             <label for="comment" style="margin-right: 10px;">Post a Comment:</label>
@@ -120,7 +118,7 @@
         {% for post in posts %}
         <div class="post-container">
             <div class="post-content">
-                <div style="margin-left: 50px; flex-direction: row;"><h4>{{ post[3] }} </h4>
+                <div style="margin-left: 50px; flex-direction: row; margin-top: -8px;"><h4>{{ post[3] }} </h4>
                 <p style="font-size: 10px; margin-top: -20px;">{{ post[2] }}</p></div>
                 <div><p style="margin-top: 28x;"> {{ post[1] }}  </p></div>
                 <div style="margin-right: 20px;"><button onclick="openPostForm('{{post[0]}}')">Reply</button></div>   
@@ -140,7 +138,7 @@
                         </div>
                         {% endfor %}
                         <form action="/reply/{{post[0]}}" method="post" style="display: flex; flex-direction: row;">
-                            <input type="text" id="reply" name="message" required style="height: 35px; margin-top: 10px;">
+                            <input type="text" id="reply" name="message" required style="height: 35px; margin-top: 10px; ">
                             <button type="submit">Submit</button>
                         </form>
                     </div>

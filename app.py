@@ -7,27 +7,23 @@ from functions import register_user, get_user, display_posts, display_reply
 
 
 app = Flask(__name__)
-app.secret_key = 'hatdog'
+app.secret_key = 'informationmanagement'
 
-# MySQL database configuration
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'sample'
+app.config['MYSQL_DB'] = 'postsystem'
 
 mysql = MySQL(app)
 init_db(app)
 
 def create_tables():
     sql_script = """
-    -- Create the User table
     CREATE TABLE IF NOT EXISTS User (
         user_id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL,
         password VARCHAR(255) NOT NULL
     );
-
-    -- Create the PostContent table
     CREATE TABLE IF NOT EXISTS PostContent (
         content_id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT,
@@ -35,7 +31,6 @@ def create_tables():
         date DATE,
         FOREIGN KEY (user_id) REFERENCES User(user_id)
     );
-
     CREATE TABLE IF NOT EXISTS ReplyContent (
         reply_id INT AUTO_INCREMENT PRIMARY KEY,
         content_id INT,

@@ -32,7 +32,7 @@ def execute(query, params=None, fetch=False):
             results = cursor.fetchall()
             return results
         else:
-            while cursor.nextset():  # Fetch remaining results
+            while cursor.nextset():  
                 pass
             db.commit()
     except Exception as e:
